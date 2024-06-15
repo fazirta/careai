@@ -1,9 +1,11 @@
 import { SignUp } from "@clerk/nextjs";
 
-export default function SignInModule() {
+const SignUpModule: React.FC<{ path: string }> = async ({ path }) => {
   return (
     <main className="w-screen h-screen flex justify-center items-center">
-      <SignUp />
+      <SignUp path={path} routing="path" />
     </main>
   );
 }
+
+export default SignUpModule;
