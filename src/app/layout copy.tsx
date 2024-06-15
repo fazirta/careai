@@ -1,25 +1,21 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
 import { ClerkProvider, SignedIn, UserButton } from "@clerk/nextjs";
-
-const inter = Inter({ subsets: ["latin"] });
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "CareAI",
-  description:
-    "AI-driven system streamlining hospital operations and patient support, tailored for Indonesian healthcare.",
+  title: "Kali Aja Hoki",
+  description: "Kali Aja Hoki",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <ClerkProvider>
       <html lang="en">
-        <body className={inter.className}>
+        <body>
           <SignedIn>
             <UserButton />
           </SignedIn>
