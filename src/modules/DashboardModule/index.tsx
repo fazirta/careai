@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { Ticket } from "@/app/db/schema";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import Link from "next/link";
+import { SideNavbar } from "./module-elements/SideNavbar";
 
 async function takeTicket(
   router: AppRouterInstance,
@@ -51,50 +52,78 @@ export const DashboardModule: React.FC<{ user: User }> = ({ user }) => {
   }, []);
 
   return (
-    <div className="pt-10 flex flex-col gap-10 justify-center items-center">
-      <div>
-        <h1 className="text-xl font-semibold">
-          Open Tickets: {openTickets.length}
-        </h1>
-        <h1 className="text-xl font-semibold">
-          Assigned to me: {assignedTickets.length}
-        </h1>
-      </div>
-      <div className="flex gap-10">
-        <div className="flex flex-col gap-5">
-          <h1 className="text-2xl font-semibold">Open Tickets</h1>
-          <ul className="flex flex-col gap-5">
-            {openTickets.map((ticket) => (
-              <li key={ticket.ticket_id}>
-                <div>Name: {ticket.name}</div>
-                <div>Location: {ticket.location}</div>
-                <div>Issue Description: {ticket.issue_description}</div>
-                <button
-                  onClick={() => takeTicket(router, ticket.ticket_id, user.id)}
-                  className="mt-2 px-8 py-2 bg-slate-600 text-white font-semibold rounded-2xl"
-                >
-                  Take
-                </button>
-              </li>
-            ))}
-          </ul>
+    <div className="w-screen h-screen pt-10 flex justify-between gap-10 items-center px-4">
+      <SideNavbar />
+      <div className="w-[75%] h-full">
+        <div className="flex gap-8">
+          <div className="p-5 bg-[#80ED99] rounded-2xl text-white shadow-lg">
+            <h1 className="text-3xl font-semibold">{openTickets.length}</h1>
+            <h2 className="text-xl font-semibold">Open Tickets</h2>
+          </div>
+          <div className="p-5 bg-[#80ED99] rounded-2xl text-white shadow-lg">
+            <h1 className="text-3xl font-semibold">{assignedTickets.length}</h1>
+            <h2 className="text-xl font-semibold">Assigned to me</h2>
+          </div>
         </div>
-        <div className="flex flex-col gap-5">
-          <h1 className="text-2xl font-semibold">Assigned Tickets</h1>
-          <ul className="flex flex-col gap-5">
-            {assignedTickets.map((ticket) => (
-              <li key={ticket.ticket_id}>
-                <div>Name: {ticket.name}</div>
-                <div>Location: {ticket.location}</div>
-                <div>Issue Description: {ticket.issue_description}</div>
-                <Link href={`/dashboard/ticket/${ticket.ticket_id}`}>
-                  <div className="w-min mt-2 px-8 py-2 bg-slate-600 text-white font-semibold rounded-2xl">
-                    Open
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
+        <div className="flex flex-wrap gap-10 pt-20">
+          {openTickets.length > 0 ? (
+            <div className="flex flex-col gap-5 bg-slate-100 p-8 rounded-2xl">
+              <h1 className="text-2xl font-semibold">Open Tickets</h1>
+              <ul className="flex flex-col gap-5">
+                {openTickets.map((ticket) => (
+                  <li
+                    key={ticket.ticket_id}
+                    className="bg-[#22577A] rounded-2xl p-4 text-white flex justify-center items-center gap-16"
+                  >
+                    <div className="flex justify-center items-center gap-5">
+                      <div className="bg-slate-400 rounded-full w-12 h-12"></div>
+                      <h2 className="text-lg font-semibold">{ticket.name}</h2>
+                    </div>
+                    <h2 className="text-lg font-semibold">{ticket.location}</h2>
+                    <button
+                      onClick={() =>
+                        takeTicket(router, ticket.ticket_id, user.id)
+                      }
+                      className="text-lg mt-2 px-8 py-2 bg-[#57CC99] text-white font-semibold rounded-2xl"
+                    >
+                      Take
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <></>
+          )}
+          {assignedTickets.length > 0 ? (
+            <div className="flex flex-col gap-5 bg-slate-100 p-8 rounded-2xl">
+              <h1 className="text-2xl font-semibold">Assigned Tickets</h1>
+              <ul className="flex flex-col gap-5">
+                {assignedTickets.map((ticket) => (
+                  <li
+                    key={ticket.ticket_id}
+                    className="bg-[#22577A] rounded-2xl p-4 text-white flex justify-center items-center gap-16"
+                  >
+                    <div className="flex justify-center items-center gap-5">
+                      <div className="bg-slate-400 rounded-full w-12 h-12"></div>
+                      <h2 className="text-lg font-semibold">{ticket.name}</h2>
+                    </div>
+                    <h2 className="text-lg font-semibold">{ticket.location}</h2>
+                    <button
+                      onClick={() =>
+                        takeTicket(router, ticket.ticket_id, user.id)
+                      }
+                      className="text-lg mt-2 px-8 py-2 bg-[#57CC99] text-white font-semibold rounded-2xl"
+                    >
+                      Open
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <></>
+          )}
         </div>
       </div>
     </div>

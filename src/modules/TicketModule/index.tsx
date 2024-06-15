@@ -1,53 +1,80 @@
 "use client";
 
-import TextareaAutosize from "react-textarea-autosize";
-import { redirect } from "next/navigation";
-import { db } from "@/app/db";
-import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import { createTicket } from "./utils/createTicket";
+import { toast } from "sonner";
 
-async function getTicket(ticket_id: string) {
-  return db.query.Ticket.findFirst({
-    where: (tickets, { eq }) => eq(tickets.ticket_id, ticket_id),
-  });
-}
-
-const TicketModule: React.FC<{ ticket_id: string }> = ({ ticket_id }) => {
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const [input, setInput] = useState<string>("");
-
-  useEffect(() => {
-    const redirectIfUnauthenticated = async () => {
-      let ticket;
-      try {
-        ticket = await getTicket(ticket_id);
-        if (ticket?.status == "closed") redirect("/");
-      } catch (error) {
-        redirect("/");
-      }
-    };
-    redirectIfUnauthenticated;
-  });
-
+export default async function TicketModule() {
   return (
-    <main className="w-screen h-screen">
-      <div className="w-full h-full p-10 flex flex-col justify-end max-w-screen-xl mx-auto">
-        <TextareaAutosize
-          ref={textareaRef}
-          // onKeyDown={(e) => {
-          //   if (e.key === 'Enter' && !e.shiftKey) {
-          //     e.preventDefault()
-          //     sendMessage()
-          //   }
-          // }}
-          rows={1}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="enter your message here"
-          className="text-xl block w-full resize-none border-0 bg-transparent text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:py-1.5 sm:text-sm sm:leading-6 h-min bg-slate-200 rounded-2xl px-5"
-        />
+    <main className="text-[#063555] flex w-screen h-screen flex-col justify-center items-center gap-5 xl:p-24">
+      <Image
+        src={"/ellipse-1.png"}
+        alt="ellipse"
+        width={600}
+        height={600}
+        className="absolute bottom-0 left-0 z-0"
+      />
+      <Image
+        src={"/ellipse-2.png"}
+        alt="ellipse"
+        width={600}
+        height={600}
+        className="absolute bottom-0 right-0 z-0"
+      />
+      <div className="z-10 w-full flex flex-col gap-10 justify-center items-center">
+        <h1 className="text-5xl font-bold text-center">Create a New Ticket</h1>
+        <form
+          action={async (formData: FormData) => {
+            await createTicket(formData);
+            toast("Successfully submitted your ticket!");
+          }}
+          className="shadow w-2/3 px-8 py-8 flex flex-col gap-5 bg-slate-50/40 rounded-2xl"
+        >
+          <div className="flex flex-col gap-2">
+            <h2 className="text-lg font-semibold">Name</h2>
+            <input
+              type="text"
+              name="name"
+              placeholder="Fazil"
+              className="bg-white/80 appearance-none border rounded w-full p-3 text-gray-700 leading-tight focus:outline-none"
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <h2 className="text-lg font-semibold">Email</h2>
+            <input
+              type="text"
+              name="email"
+              placeholder="youremail@company.com"
+              className="bg-white/80 appearance-none border rounded w-full p-3 text-gray-700 leading-tight focus:outline-none"
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <h2 className="text-lg font-semibold">Location</h2>
+            <input
+              type="text"
+              name="location"
+              placeholder="Bandung"
+              className="bg-white/80 appearance-none border rounded w-full p-3 text-gray-700 leading-tight focus:outline-none"
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <h2 className="text-lg font-semibold">Issue description</h2>
+            <textarea
+              name="issue_description"
+              placeholder="Scheduling an appointment..."
+              className="bg-white/80 appearance-none border rounded w-full p-3 text-gray-700 leading-tight focus:outline-none h-48"
+            />
+          </div>
+          <div className="w-full text-center">
+            <button
+              type="submit"
+              className="rounded-md w-full h-full bg-[#00E699] cursor-pointer transition-colors hover:bg-[#00e5BF] text-gray-800 font-semibold py-3 px-4 focus:outline-none"
+            >
+              Submit
+            </button>
+          </div>
+        </form>
       </div>
     </main>
   );
-};
-
-export default TicketModule;
+}

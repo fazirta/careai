@@ -1,10 +1,5 @@
-import LandingPageModule from "@/modules/LandingPageModule";
-import { currentUser } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
+import LandingPageModule from "@/modules/TicketModule";
 
-export default async function Home() {
-  const user = await currentUser();
-  // if (user) redirect("/dashboard");
-
+export default function Home() {
   return <LandingPageModule />;
 }

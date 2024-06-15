@@ -1,11 +1,9 @@
 import { SignIn } from "@clerk/nextjs";
 
-const SignInModule: React.FC<{ path: string }> = async ({ path }) => {
+export default function SignInModule() {
   return (
     <main className="w-screen h-screen flex justify-center items-center">
-      <SignIn path={path} routing="path" />
+      <SignIn />
     </main>
   );
 }
-
-export default SignInModule;

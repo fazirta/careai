@@ -1,6 +1,5 @@
-import { redirect } from "next/navigation";
+import TicketModule from "@/modules/TicketModule";
 
-export default async function Page() {
-  redirect("/");
-  return;
+export default function Page() {
+  return <TicketModule />;
 }

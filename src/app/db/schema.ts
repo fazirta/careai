@@ -9,18 +9,21 @@ import {
 
 export const Ticket = pgTable("tickets", {
   ticket_id: uuid("id").defaultRandom().notNull().primaryKey(),
-  name: text("name"),
-  location: text("location"),
-  open_time: timestamp("open_time").defaultNow().notNull(),
   assigned_agent_id: text("assigned_agent_id"),
+  open_time: timestamp("open_time").defaultNow().notNull(),
   status: text("status", { enum: ["open", "closed", "assigned"] }).default(
     "open"
   ),
-  issue_description: text("issue_description"),
   priority: text("priority", { enum: ["low", "medium", "high"] }).default(
     "medium"
   ),
   last_updated: timestamp("last_updated").defaultNow().notNull(),
+  name: text("name"),
+  email: text("email"),
+  location: text("location"),
+  issue_description: text("issue_description"),
+  issue_summary: text("issue_summary"),
+  sentiment: text("sentiment"),
 });
 
 export const MockFeels = pgTable("mockFeels", {
