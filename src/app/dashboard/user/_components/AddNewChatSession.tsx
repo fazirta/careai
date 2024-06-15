@@ -68,7 +68,8 @@ function AddNewChatSession() {
     }
     return (
         <div>
-            <div className='p-10 border rounded-lg bg-secondary hover:scale-105 hover:shadow-md cursor-pointer transition-all' onClick={() => setOpenDialog(true)}>
+            <div className='p-5 border rounded-lg bg-green-400 hover:scale-105 hover:shadow-md cursor-pointer transition-all' onClick={() => setOpenDialog(true)}>
+
                 <h2 className="text-lg text-center">AI Analysis</h2>
             </div>
 
