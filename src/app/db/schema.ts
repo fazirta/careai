@@ -14,4 +14,10 @@ export const Ticket = pgTable("tickets", {
     "medium"
   ),
   last_updated: timestamp("last_updated").defaultNow().notNull(),
+  messages: .....
 });
+
+export const Message = pgTable("messages", {
+  ticket_id: ....,
+  
+})

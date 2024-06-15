@@ -1,5 +1,9 @@
+"use client";
+
+import TextareaAutosize from "react-textarea-autosize";
 import { redirect } from "next/navigation";
 import { db } from "@/app/db";
+import { useEffect, useRef, useState } from "react";
 
 async function getTicket(ticket_id: string) {
   return db.query.Ticket.findFirst({
@@ -7,26 +11,40 @@ async function getTicket(ticket_id: string) {
   });
 }
 
-const TicketModule: React.FC<{ ticket_id: string }> = async ({ ticket_id }) => {
-  let ticket;
-  try {
-    ticket = await getTicket(ticket_id);
-    if (ticket?.status == "closed") redirect("/");
-  } catch (error) {
-    redirect("/");
-  }
+const TicketModule: React.FC<{ ticket_id: string }> = ({ ticket_id }) => {
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const [input, setInput] = useState<string>("");
+
+  useEffect(() => {
+    const redirectIfUnauthenticated = async () => {
+      let ticket;
+      try {
+        ticket = await getTicket(ticket_id);
+        if (ticket?.status == "closed") redirect("/");
+      } catch (error) {
+        redirect("/");
+      }
+    };
+    redirectIfUnauthenticated;
+  });
 
   return (
-    <main className="flex min-h-screen flex-col justify-center items-center p-24">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-5xl font-semibold pb-5">Ticket information</h1>
-        <h1 className="text-4xl">Name: {ticket?.name}</h1>
-        <h1 className="text-4xl">Location: {ticket?.location}</h1>
-        <h1 className="text-4xl">Status: {ticket?.status}</h1>
-        <h1 className="text-4xl">
-          Issue description: {ticket?.issue_description}
-        </h1>
-        <h1 className="text-4xl">Priority: {ticket?.priority}</h1>
+    <main className="w-screen h-screen">
+      <div className="w-full h-full p-10 flex flex-col justify-end max-w-screen-xl mx-auto">
+        <TextareaAutosize
+          ref={textareaRef}
+          // onKeyDown={(e) => {
+          //   if (e.key === 'Enter' && !e.shiftKey) {
+          //     e.preventDefault()
+          //     sendMessage()
+          //   }
+          // }}
+          rows={1}
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="enter your message here"
+          className="text-xl block w-full resize-none border-0 bg-transparent text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:py-1.5 sm:text-sm sm:leading-6 h-min bg-slate-200 rounded-2xl px-5"
+        />
       </div>
     </main>
   );

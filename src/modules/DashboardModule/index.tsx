@@ -1,172 +1,102 @@
 "use client";
 
-import { ChatSession, GoogleGenerativeAI } from "@google/generative-ai";
-import Markdown from "react-markdown";
-import { useState, useEffect, useRef } from "react";
-import { Send, Trash } from "lucide-react";
-import Image from "next/image";
+import { useState, useEffect } from "react";
+import { db } from "@/app/db";
+import { User } from "@clerk/backend";
+import { eq } from "drizzle-orm";
+import { useRouter } from "next/navigation";
+import { Ticket } from "@/app/db/schema";
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import Link from "next/link";
 
-export default function DashboardModule() {
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [input, setinput] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
-  const [history, setHistory] = useState<{ role: string; parts: string }[]>([
-    {
-      role: "model",
-      parts: "Great to meet you. Im Gemini, your chatbot.",
-    },
-  ]);
-  const genAI = new GoogleGenerativeAI(
-    process.env.NEXT_PUBLIC_GEMINI_API_KEY as string
-  );
-  const [chat, setchat] = useState<ChatSession | null>(null);
+async function takeTicket(
+  router: AppRouterInstance,
+  ticket_id: string,
+  user_id: string
+) {
+  try {
+    await db
+      .update(Ticket)
+      .set({ assigned_agent_id: user_id })
+      .where(eq(Ticket.ticket_id, ticket_id));
 
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+    router.push(`/dashboard/ticket/${ticket_id}`);
+  } catch (error) {
+    console.error("Error taking ticket:", error);
+    throw error;
+  }
+}
+
+export const DashboardModule: React.FC<{ user: User }> = ({ user }) => {
+  const router = useRouter();
+  const [openTickets, setOpenTickets] = useState<(typeof Ticket)[]>([]);
+  const [assignedTickets, setAssignedTickets] = useState<(typeof Ticket)[]>([]);
 
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [history]);
-
-  useEffect(() => {
-    if (!chat) {
-      setchat(
-        model.startChat({
-          generationConfig: {
-            maxOutputTokens: 400,
-          },
-        })
+    async function fetchTicketsAndCount() {
+      const tickets = await db.query.Ticket.findMany();
+      const openTickets = tickets.filter(
+        (ticket) =>
+          ticket.status === "open" && ticket.assigned_agent_id !== user.id
       );
-    }
-  }, [chat, model]);
+      const assignedTicket = tickets.filter(
+        (ticket) => ticket.assigned_agent_id === user.id
+      );
 
-  async function chatting() {
-    setLoading(true);
-    setHistory((oldHistory) => [
-      ...oldHistory,
-      {
-        role: "user",
-        parts: input,
-      },
-      {
-        role: "model",
-        parts: "Thinking...",
-      },
-    ]);
-    setinput("");
-    try {
-      const result = await chat?.sendMessage(input);
-      const response = await result?.response;
-      const text = response?.text();
-      setLoading(false);
-      setHistory((oldHistory) => {
-        const newHistory = oldHistory.slice(0, oldHistory.length - 1);
-        newHistory.push({
-          role: "model",
-          parts: text ? text : "",
-        });
-        return newHistory;
-      });
-    } catch (error) {
-      setHistory((oldHistory) => {
-        const newHistory = oldHistory.slice(0, oldHistory.length - 1);
-        newHistory.push({
-          role: "model",
-          parts: "Oops! Something went wrong.",
-        });
-        return newHistory;
-      });
-      setLoading(false);
-      console.log(error);
-      alert("Oops! Something went wrong.");
+      setOpenTickets(openTickets);
+      setAssignedTickets(assignedTicket);
     }
-  }
 
-  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === "Enter") {
-      chatting();
-    }
-  }
-
-  function reset() {
-    setHistory([
-      {
-        role: "model",
-        parts: "Great to meet you. Im Gemini, your chatbot.",
-      },
-    ]);
-    setinput("");
-    setchat(null);
-  }
+    fetchTicketsAndCount();
+  }, []);
 
   return (
-    <div className="relative flex px-2 justify-center max-w-3xl min-h-[90vh] w-full pt-6 bg-gray-900 rounded-3xl max-h-screen shadow shadow-slate-900">
-      <div className="flex text-sm md:text-base flex-col pt-10 pb-16 w-full flex-grow flex-1 rounded-3xl shadow-md overflow-y-auto">
-        {history.map((item, index) => (
-          <div
-            key={index}
-            className={`chat ${
-              item.role === "model" ? "self-start" : "self-end"
-            }`}
-          >
-            <div className="chat-image avatar">
-              <div className="w-6 md:w-10 rounded-full">
-                <Image
-                  alt="o"
-                  src={item.role === "model" ? "/geminis.jpeg" : "/user.jpg"}
-                  width={50}
-                  height={50}
-                />
-              </div>
-            </div>
-            <div className="text-white text-3xl font-semibold opacity-80">
-              {item.role === "model" ? "Gemini" : "You"}
-            </div>
-            <div
-              className={`text-white text-xl font-medium ${
-                item.role === "model" ? "chat-bubble-primary" : ""
-              }`}
-            >
-              <Markdown>{item.parts}</Markdown>
-            </div>
-          </div>
-        ))}
-        <div ref={messagesEndRef} />
+    <div className="pt-10 flex flex-col gap-10 justify-center items-center">
+      <div>
+        <h1 className="text-xl font-semibold">
+          Open Tickets: {openTickets.length}
+        </h1>
+        <h1 className="text-xl font-semibold">
+          Assigned to me: {assignedTickets.length}
+        </h1>
       </div>
-
-      <div className="absolute px-2 bottom-2 w-full flex gap-1">
-        <button
-          className="btn btn-outline shadow-md btn-error rounded-3xl backdrop-blur"
-          title="send"
-          onClick={reset}
-        >
-          <Trash />
-        </button>
-        <textarea
-          value={input}
-          rows={1}
-          onKeyDown={handleKeyDown}
-          onChange={(e) => setinput(e.target.value)}
-          placeholder="Start Chatting..."
-          className="textarea backdrop-blur textarea-primary w-full mx-auto bg-opacity-60 font-medium shadow rounded-3xl"
-        />
-        <button
-          className={`btn rounded-3xl shadow-md ${
-            loading
-              ? "btn-accent cursor-wait pointer-events-none"
-              : "btn-primary"
-          }`}
-          title="send"
-          onClick={chatting}
-        >
-          {loading ? (
-            <span className="loading loading-spinner loading-sm"></span>
-          ) : (
-            <Send />
-          )}
-        </button>
+      <div className="flex gap-10">
+        <div className="flex flex-col gap-5">
+          <h1 className="text-2xl font-semibold">Open Tickets</h1>
+          <ul className="flex flex-col gap-5">
+            {openTickets.map((ticket) => (
+              <li key={ticket.ticket_id}>
+                <div>Name: {ticket.name}</div>
+                <div>Location: {ticket.location}</div>
+                <div>Issue Description: {ticket.issue_description}</div>
+                <button
+                  onClick={() => takeTicket(router, ticket.ticket_id, user.id)}
+                  className="mt-2 px-8 py-2 bg-slate-600 text-white font-semibold rounded-2xl"
+                >
+                  Take
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="flex flex-col gap-5">
+          <h1 className="text-2xl font-semibold">Assigned Tickets</h1>
+          <ul className="flex flex-col gap-5">
+            {assignedTickets.map((ticket) => (
+              <li key={ticket.ticket_id}>
+                <div>Name: {ticket.name}</div>
+                <div>Location: {ticket.location}</div>
+                <div>Issue Description: {ticket.issue_description}</div>
+                <Link href={`/dashboard/ticket/${ticket.ticket_id}`}>
+                  <div className="w-min mt-2 px-8 py-2 bg-slate-600 text-white font-semibold rounded-2xl">
+                    Open
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );
-}
+};
