@@ -1,4 +1,4 @@
-import LandingPageModule from "@/modules/TicketModule";
+import LandingPageModule from "@/modules/LandingPageModule";
 
 export default function Home() {
   return <LandingPageModule />;
